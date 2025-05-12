@@ -156,27 +156,34 @@ def datagen(frames, mels):
 mel_step_size = 16
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print('Using {} for inference.'.format(device))
-
 def _load(checkpoint_path):
-	if device == 'cuda':
-		checkpoint = torch.load(checkpoint_path)
-	else:
-		checkpoint = torch.load(checkpoint_path,
-								map_location=lambda storage, loc: storage)
-	return checkpoint
-
+    checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
+    return checkpoint
 def load_model(path):
-	model = Wav2Lip()
-	print("Load checkpoint from: {}".format(path))
-	checkpoint = _load(path)
-	s = checkpoint["state_dict"]
-	new_s = {}
-	for k, v in s.items():
-		new_s[k.replace('module.', '')] = v
-	model.load_state_dict(new_s)
+    print("Load checkpoint from:", path)
+    if path.endswith('.pt'):
+        model = torch.jit.load(path, map_location='cuda' if torch.cuda.is_available() else 'cpu')
+        model.eval()
+        return model
+    else:
+        checkpoint = torch.load(path, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
+        model = Wav2Lip()  # Or whatever your base model class is
+        model.load_state_dict(checkpoint['state_dict'])
+        model = model.to(torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
+        model.eval()
+        return model
+# def load_model(path):
+# 	model = Wav2Lip()
+# 	print("Load checkpoint from: {}".format(path))
+# 	checkpoint = _load(path)
+# 	s = checkpoint["state_dict"]
+# 	new_s = {}
+# 	for k, v in s.items():
+# 		new_s[k.replace('module.', '')] = v
+# 	model.load_state_dict(new_s)
 
-	model = model.to(device)
-	return model.eval()
+# 	model = model.to(device)
+# 	return model.eval()
 
 def main():
 	if not os.path.isfile(args.face):
