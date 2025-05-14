@@ -1,13 +1,13 @@
 import subprocess
 
 # Define input folder and output path
-input_folder = "results2"
-output_file = "results2/final_output.mp4"
+input_folder = "results3"
+output_file = "results3/final_output.mp4"
 
 # Create a text file with the list of videos
 with open("file_list.txt", "w") as file:
     for i in range(1, 51):
-        file.write(f"file '{input_folder}/result_{i}.mp4'\n")
+        file.write(f"file '{input_folder}/result_video_{i}.mp4'\n")
 
 # Construct the ffmpeg command to concatenate the videos
 command = [
